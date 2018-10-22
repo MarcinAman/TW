@@ -1,6 +1,6 @@
 import Zadanie1.{BinarySemaphore, BinarySemaphoreTest}
 import Zadanie2.BinarySemaphoreWithoutLoop
-import Zadanie4.{ResourceHierarchy, WaiterSolution}
+import Zadanie4.{QueueSolution, ResourceHierarchy, WaiterSolution}
 
 object Main {
   private def zadanie1(): Unit ={
@@ -20,7 +20,12 @@ object Main {
     waiterSolution.test()
   }
 
+  private def zadanie4WithQueue(): Unit = {
+    val queueSolution = new QueueSolution
+    queueSolution.test()
+  }
+
   def main(args: Array[String]): Unit = {
-    this.zadanie4WithHierarchy()
+    this.zadanie4WithWaiter()
   }
 }
