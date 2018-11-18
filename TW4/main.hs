@@ -115,6 +115,7 @@ filterStars x = filter (\s -> s /= "*") x
 -- dalej usuwamy nadmiarowe, wynikające z przechodniości
 -- w sensie jak coś jest przechodnie to połączenie bezpośrednie nie jest wymagane
 
+
 -- Util:
 prettifyTuplesList :: [Pair] -> String
 prettifyTuplesList x = "{" ++ (intercalate " , " (map (\s -> printTuple s) x)) ++ "} + symetria"
