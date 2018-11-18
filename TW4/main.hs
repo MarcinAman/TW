@@ -53,6 +53,8 @@ dependent :: [Transaction] -> Transaction -> [Transaction]
 dependent transactions current = [y | y <- transactions, (variable current) `elem` (production y) || (variable current) == (variable y)]
 
 --I:
+independetClass :: [(String, String)] -> [String] -> [(String, String)]
+independetClass dp v = [(y,z) | y <- v, z <- v, not ((y,z) `elem` dp) && not ((z,y) `elem` dp)]
 
 -- Util:
 prettifyTuplesList :: [(String, String)] -> String
@@ -67,4 +69,8 @@ main = do
     handler <- openFile inFileName ReadMode
     fileContent <- hGetContents handler
     let content = (makeTransactionFromLines . splitFileContent) (fileContent)
-    putStrLn ((prettifyTuplesList . dependencyClass) (content))
+    let alphabet = map (\x -> symbol x) content
+    let dependent = dependencyClass content
+    putStrLn (prettifyTuplesList dependent)
+    let independentR = independetClass dependent alphabet
+    putStrLn (prettifyTuplesList independentR)
