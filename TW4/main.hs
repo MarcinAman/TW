@@ -13,6 +13,15 @@ data Transaction = Transaction {
         production :: [String]
     } deriving (Show)
 
+data FoatStack = FoatStack {
+      stack       :: [String],
+      var         :: String
+}
+
+type Foat = [String]
+
+type Pair = (String, String)
+
 -- parsing:
 
 splitFileContent :: String -> [String]
@@ -30,7 +39,7 @@ makeTransaction [] x l = []
 makeTransaction x [] l = []
 makeTransaction x y z = [Transaction x y (parseProduction (z  ^? element 1))]
 
-parseVariablesAndSymbol :: Maybe String -> (String, String)
+parseVariablesAndSymbol :: Maybe String -> Pair
 parseVariablesAndSymbol x = case x of
                             Nothing -> ("", "")
                             Just y -> ((splitted !! 0), (splitted !! 2))
@@ -46,21 +55,44 @@ isValidProduction [x] = isLetter x
 isValidProduction _ = False
 
 -- D:
-dependencyClass :: [Transaction] -> [(String, String)]
+dependencyClass :: [Transaction] -> [Pair]
 dependencyClass x = [(symbol y, symbol z) | y <- x, z <- (dependent x y)]
 
 dependent :: [Transaction] -> Transaction -> [Transaction]
 dependent transactions current = [y | y <- transactions, (variable current) `elem` (production y) || (variable current) == (variable y)]
 
 --I:
-independetClass :: [(String, String)] -> [String] -> [(String, String)]
+independetClass :: [Pair] -> [String] -> [Pair]
 independetClass dp v = [(y,z) | y <- v, z <- v, not ((y,z) `elem` dp) && not ((z,y) `elem` dp)]
 
+--Foat
+foatClass :: [Pair] -> [String] -> String -> [Foat]
+foatClass dp alphabet word = convertStacksToFoat (fillStacks word dp alphabetStacks)
+                          where alphabetStacks = map (\x -> FoatStack [] x) alphabet
+
+-- TODO
+fillStacks :: String -> [Pair] -> [FoatStack] -> [FoatStack]
+fillStacks [] dp stacks = stacks
+fillStacks (x : xs) dp stacks = stacks
+
+-- TODO
+convertStacksToFoat :: [FoatStack] -> [Foat]
+convertStacksToFoat x = []
+
+-- TODO
+getMaxStackSize :: [FoatStack] -> Int
+getMaxStackSize x = maximum (map (\s -> length (stack s)) x)
+
+-- TODO
+popFromStacks :: [FoatStack] -> String
+popFromStacks [] = ""
+popFromStacks (x : xs) = ""
+
 -- Util:
-prettifyTuplesList :: [(String, String)] -> String
+prettifyTuplesList :: [Pair] -> String
 prettifyTuplesList x = "{" ++ (intercalate " , " (map (\s -> printTuple s) x)) ++ "} + symetria"
 
-printTuple :: (String, String) -> String
+printTuple :: Pair -> String
 printTuple (x,y) = "(" ++ x ++ "," ++ y ++ ")"
 
 main = do
