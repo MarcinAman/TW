@@ -67,26 +67,46 @@ independetClass dp v = [(y,z) | y <- v, z <- v, not ((y,z) `elem` dp) && not ((z
 
 --Foat
 foatClass :: [Pair] -> [String] -> String -> [Foat]
-foatClass dp alphabet word = convertStacksToFoat (fillStacks word dp alphabetStacks)
+foatClass dp alphabet word = convertStacksToFoat $ fillStacksToMaxSize (fillStacks word dp alphabetStacks)
                           where alphabetStacks = map (\x -> FoatStack [] x) alphabet
 
--- TODO
 fillStacks :: String -> [Pair] -> [FoatStack] -> [FoatStack]
 fillStacks [] dp stacks = stacks
-fillStacks (x : xs) dp stacks = stacks
+fillStacks (x : xs) dp stacks = fillStacks xs dp (map (\c -> addToStacks c [x] dp) stacks)
 
--- TODO
+addToStacks :: FoatStack -> String -> [Pair] -> FoatStack
+addToStacks st v dp = if (isVariableDependent v dp)
+                        then FoatStack (v : (stack st)) (var st)
+                        else FoatStack ("*" : (stack st)) (var st)
+
+isVariableDependent :: String -> [Pair] ->Bool
+isVariableDependent v dp = ([] /= [k | (k,j) <- dp, k == v || j == v])
+
 convertStacksToFoat :: [FoatStack] -> [Foat]
-convertStacksToFoat x = []
+convertStacksToFoat x | (concat $ map (\c -> (stack c)) x) == [] = []
+                      | otherwise = ((filterStars . joinTops) x) : (convertStacksToFoat $ sliceTops x)
 
--- TODO
+fillStacksToMaxSize :: [FoatStack] -> [FoatStack]
+fillStacksToMaxSize x = map (\s -> FoatStack (fillMissingLength s maxStackSize) (var s)) x
+                                    where maxStackSize = getMaxStackSize x
+
+fillMissingLength :: FoatStack -> Int -> [String]
+fillMissingLength st maxLength = (stack st) ++ ["*" | _ <- [0 .. missing]]
+                                    where missing = maxLength - (length (stack st)) 
+
 getMaxStackSize :: [FoatStack] -> Int
 getMaxStackSize x = maximum (map (\s -> length (stack s)) x)
 
--- TODO
-popFromStacks :: [FoatStack] -> String
-popFromStacks [] = ""
-popFromStacks (x : xs) = ""
+joinTops :: [FoatStack] -> [String]
+joinTops [] = []
+joinTops (x : xs) = (head $ stack x) : (joinTops xs)
+
+sliceTops :: [FoatStack] -> [FoatStack]
+sliceTops [] = []
+sliceTops (x : xs) = (FoatStack (tail $ stack x) (var x)) : (sliceTops xs)
+
+filterStars :: [String] -> [String]
+filterStars x = filter (\s -> s == "*") x
 
 -- Util:
 prettifyTuplesList :: [Pair] -> String
@@ -100,9 +120,12 @@ main = do
     putStrLn inFileName
     handler <- openFile inFileName ReadMode
     fileContent <- hGetContents handler
-    let content = (makeTransactionFromLines . splitFileContent) (fileContent)
+    let lines = splitFileContent fileContent
+    let content = makeTransactionFromLines (tail lines)
     let alphabet = map (\x -> symbol x) content
     let dependent = dependencyClass content
     putStrLn (prettifyTuplesList dependent)
     let independentR = independetClass dependent alphabet
     putStrLn (prettifyTuplesList independentR)
+    putStrLn (show (foatClass dependent alphabet (head lines)))
+    -- foatClass :: [Pair] -> [String] -> String -> [Foat]
