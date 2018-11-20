@@ -16,7 +16,7 @@ data Transaction = Transaction {
 data FoatStack = FoatStack {
       stack       :: [String],
       var         :: String
-}
+} deriving (Show)
 
 type Foat = [String]
 
@@ -75,12 +75,14 @@ fillStacks [] dp stacks = stacks
 fillStacks (x : xs) dp stacks = fillStacks xs dp (map (\c -> addToStacks c [x] dp) stacks)
 
 addToStacks :: FoatStack -> String -> [Pair] -> FoatStack
-addToStacks st v dp = if (isVariableDependent v dp)
+addToStacks st v dp = if ( (var st) == v )
                         then FoatStack (v : (stack st)) (var st)
-                        else FoatStack ("*" : (stack st)) (var st)
+                        else if (isVariableDependent v (var st) dp)
+                            then FoatStack ("*" : (stack st)) (var st)
+                            else st
 
-isVariableDependent :: String -> [Pair] ->Bool
-isVariableDependent v dp = ([] /= [k | (k,j) <- dp, k == v || j == v])
+isVariableDependent :: String -> String -> [Pair] -> Bool
+isVariableDependent v vst dp = ([] /= [k | (k,j) <- dp, (k == v && j == vst) || (j == v &&  k == vst)])
 
 convertStacksToFoat :: [FoatStack] -> [Foat]
 convertStacksToFoat x | (concat $ map (\c -> (stack c)) x) == [] = []
@@ -92,10 +94,10 @@ fillStacksToMaxSize x = map (\s -> FoatStack (fillMissingLength s maxStackSize) 
 
 fillMissingLength :: FoatStack -> Int -> [String]
 fillMissingLength st maxLength = (stack st) ++ ["*" | _ <- [0 .. missing]]
-                                    where missing = maxLength - (length (stack st)) 
+                                    where missing = maxLength - (length (stack st))
 
 getMaxStackSize :: [FoatStack] -> Int
-getMaxStackSize x = maximum (map (\s -> length (stack s)) x)
+getMaxStackSize x = maximum (map (\s -> length (stack s)) x) - 1
 
 joinTops :: [FoatStack] -> [String]
 joinTops [] = []
@@ -106,7 +108,7 @@ sliceTops [] = []
 sliceTops (x : xs) = (FoatStack (tail $ stack x) (var x)) : (sliceTops xs)
 
 filterStars :: [String] -> [String]
-filterStars x = filter (\s -> s == "*") x
+filterStars x = filter (\s -> s /= "*") x
 
 -- Util:
 prettifyTuplesList :: [Pair] -> String
@@ -127,5 +129,5 @@ main = do
     putStrLn (prettifyTuplesList dependent)
     let independentR = independetClass dependent alphabet
     putStrLn (prettifyTuplesList independentR)
-    putStrLn (show (foatClass dependent alphabet (head lines)))
+    putStrLn (show $ reverse (foatClass dependent alphabet (head lines)))
     -- foatClass :: [Pair] -> [String] -> String -> [Foat]
