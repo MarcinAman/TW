@@ -110,12 +110,20 @@ sliceTops (x : xs) = (FoatStack (tail $ stack x) (var x)) : (sliceTops xs)
 filterStars :: [String] -> [String]
 filterStars x = filter (\s -> s /= "*") x
 
+-- graph drawing
+-- wypisujemy słowo, dalej strzałki do wszystkich do których jest relacja zależności.
+-- dalej usuwamy nadmiarowe, wynikające z przechodniości
+-- w sensie jak coś jest przechodnie to połączenie bezpośrednie nie jest wymagane
+
 -- Util:
 prettifyTuplesList :: [Pair] -> String
 prettifyTuplesList x = "{" ++ (intercalate " , " (map (\s -> printTuple s) x)) ++ "} + symetria"
 
 printTuple :: Pair -> String
 printTuple (x,y) = "(" ++ x ++ "," ++ y ++ ")"
+
+filterEmpty :: [Foat] -> [Foat]
+filterEmpty x = filter (\s -> s /= []) x
 
 main = do
     (inFileName:_) <- getArgs
@@ -129,5 +137,5 @@ main = do
     putStrLn (prettifyTuplesList dependent)
     let independentR = independetClass dependent alphabet
     putStrLn (prettifyTuplesList independentR)
-    putStrLn (show $ reverse (foatClass dependent alphabet (head lines)))
-    -- foatClass :: [Pair] -> [String] -> String -> [Foat]
+    let foatC = (filterEmpty . reverse ) (foatClass dependent alphabet (head lines))
+    putStrLn (show foatC)
